@@ -1,0 +1,20 @@
+{
+  "name": "lab3",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lab3.js",
+  "scripts": {
+  },    "start": "node lab3New.js",
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LivingLif3/aois-3-lab.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LivingLif3/aois-3-lab/issues"
+  },
+  "homepage": "https://github.com/LivingLif3/aois-3-lab#readme"
+}

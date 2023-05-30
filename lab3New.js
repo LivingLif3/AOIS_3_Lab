@@ -1,3 +1,5 @@
+import {MinimizationMcClusky} from "./MinimizationMcClusky.js";
+
 const bin_to_int = (number) => {
     let res = 0
     for (let i = 1; i < number.length; i++) {
@@ -182,7 +184,7 @@ function truthTable(n) {
     return table;
 }
 
-const buildTable = (n) => {
+export const buildTable = (n) => {
     const table = truthTable(n);
     return table
 }
@@ -210,14 +212,14 @@ const replaceVariables = (formula, row, variables) => {
     return ans
 }
 
-const showTable = (table, answers, variables) => {
+export const showTable = (table, answers, variables) => {
     console.log(variables.join(' '), ' result')
     for (let i = 0; i < table.length; i++) {
         console.log('', table[i].join(' '), '    ' + answers[i])
     }
 }
 
-const buildSKNF = (table, answers, variables) => {
+export const buildSKNF = (table, answers, variables) => {
     let answer = ""
     let SKNF = []
     for (let i = 0; i < answers.length; i++) {
@@ -248,7 +250,7 @@ const buildSKNF = (table, answers, variables) => {
     return [...SKNF]
 }
 
-const buildSDNF = (table, answers, variables) => {
+export const buildSDNF = (table, answers, variables) => {
     let answer = ""
     let SDNF = []
     for (let i = 0; i < answers.length; i++) {
@@ -275,7 +277,6 @@ const buildSDNF = (table, answers, variables) => {
         }
     }
     answer = answer.substring(0, answer.length - 2)
-    console.log(answer)
     return [...SDNF]
 }
 
@@ -305,6 +306,16 @@ const buildInt = (answers) => {
     return ans
 }
 
+const findMinTerms = (SDNF_SKNF) => {
+    for(let i = 0; i < SDNF_SKNF.length; i++) {
+        for(let j = i + 1; j < SDNF_SKNF.length; j++) {
+            if(intersectionArrays(SDNF_SKNF[i], SDNF_SKNF[j])) {
+
+            }
+        }
+    }
+}
+
 const intersectionSDNF = (SDNF) => {
     let intersectionSDNF = []
     for (let i = 0; i < SDNF.length - 1; i++) {
@@ -323,7 +334,24 @@ const differenceArrays = (arr1, arr2) => {
     return [...difference]
 }
 
-const symmetricalDofference =(arr1, arr2) => {
+const intersectionArrays = (arr1, arr2) => {
+    let diff = 0
+    let index = 0
+    for(let i = 0; i < arr1.length; i++) {
+        if(arr1[i] !== arr2[i]) {
+            diff++
+            index = i
+        }
+    }
+    if(diff === 1) {
+        let newArr = [...arr1]
+        newArr[index] = '-'
+        return newArr
+    }
+    return false
+}
+
+const symmetricalDofference = (arr1, arr2) => {
     let difference = arr1.filter(x => !arr2.includes(x)).concat(arr2.filter(x => !arr1.includes(x)));
     return [...difference]
 }
@@ -333,10 +361,9 @@ const checkImplicantsSDNF = (SDNF, copyOfSDNF, sknf = false) => {
 
     let reducedImplicants = minimizationMcClaskySecTerm(SDNF)
 
-    if(reducedImplicants.length !== 0) {
+    if (reducedImplicants.length !== 0) {
         SDNF = reducedImplicants
     }
-    console.log(SDNF, "SDNF")
 
     for (let implicant of SDNF) {
         let subctitute = {}
@@ -352,16 +379,16 @@ const checkImplicantsSDNF = (SDNF, copyOfSDNF, sknf = false) => {
     let answer = reductionImplicants(SDNF, substitutions)
     let buildImplicants = [], indexes = []
     let variables = new Set()
-    for(let i = 0; i < SDNF.length; i++) {
-        if(answer[i]) {
+    for (let i = 0; i < SDNF.length; i++) {
+        if (answer[i]) {
             buildImplicants.push(SDNF[i])
             continue
         }
         indexes.push(i)
     }
-    for(let i = 0; i < buildImplicants.length; i++) {
-        for(let variable of buildImplicants[i]) {
-            if(variable[0] === '!') {
+    for (let i = 0; i < buildImplicants.length; i++) {
+        for (let variable of buildImplicants[i]) {
+            if (variable[0] === '!') {
                 variables.add(variable.substring(1))
             } else {
                 variables.add(variable.substring(0))
@@ -369,18 +396,16 @@ const checkImplicantsSDNF = (SDNF, copyOfSDNF, sknf = false) => {
         }
     }
     //let reducedImplicants = reduceImplicants(buildImplicants)
-    if(variables.size !== 3) {
-        console.log(variables, 'VARIABLES')
-        console.log(indexes, "DSA&!@@!2")
-        if(indexes.length !== 0) {
+    if (variables.size !== 3) {
+        if (indexes.length !== 0) {
             buildImplicants.push(copyOfSDNF[indexes[getRandomInt(indexes.length)]])
         }
     } else {
-        if(reducedImplicants.length !== 0) {
+        if (reducedImplicants.length !== 0) {
             buildImplicants = reducedImplicants
         }
     }
-    if(SDNF.length === 1 && copyOfSDNF.length > SDNF.length) {
+    if (SDNF.length === 1 && copyOfSDNF.length > SDNF.length) {
         buildImplicants.push(copyOfSDNF[1])
     }
     showRaschMethodRes(buildImplicants, SDNF, sknf)
@@ -400,30 +425,30 @@ const compareArrays = (arr1, arr2) => {
 const reduceImplicants = (implicants) => {
     let reducedImplicants = []
     let answer = []
-    for(let i = 0; i < implicants.length; i++) {
-        for(let j = i + 1; j < implicants.length; j++) {
+    for (let i = 0; i < implicants.length; i++) {
+        for (let j = i + 1; j < implicants.length; j++) {
             let symDiff = symmetricalDofference(implicants[i], implicants[j])
-            if(symDiff.length == 2) {
+            if (symDiff.length == 2) {
                 reducedImplicants.push(symDiff)
             }
         }
     }
-    for(let i = 0; i < reducedImplicants.length; i++) {
-        if(reducedImplicants[i][0].includes(reducedImplicants[i][1]) || reducedImplicants[i][1].includes(reducedImplicants[i][0])) {
+    for (let i = 0; i < reducedImplicants.length; i++) {
+        if (reducedImplicants[i][0].includes(reducedImplicants[i][1]) || reducedImplicants[i][1].includes(reducedImplicants[i][0])) {
             reducedImplicants.splice(i, 1)
             i--
         }
     }
-    for(let i = 0; i < reducedImplicants.length; i++) {
+    for (let i = 0; i < reducedImplicants.length; i++) {
         let count = 0
-        for(let j = 0; j < answer.length; j++) {
-            if(compareArrays(reducedImplicants[i], answer[j])) {
+        for (let j = 0; j < answer.length; j++) {
+            if (compareArrays(reducedImplicants[i], answer[j])) {
                 break
             } else {
                 count++
             }
         }
-        if(count === answer.length) {
+        if (count === answer.length) {
             answer.push(reducedImplicants[i])
         }
     }
@@ -432,60 +457,59 @@ const reduceImplicants = (implicants) => {
 }
 
 const showRaschMethodRes = (buildImplicants, implicants, sknf = false) => {
-    console.log(buildImplicants, "SFAFKA)W")
     let str = ""
-    if(!sknf) {
-        if(buildImplicants.length) {
-            for(let i = 0; i < buildImplicants.length; i++) {
-                for(let j = 0; j < buildImplicants[i].length; j++) {
+    if (!sknf) {
+        if (buildImplicants.length) {
+            for (let i = 0; i < buildImplicants.length; i++) {
+                for (let j = 0; j < buildImplicants[i].length; j++) {
                     str += buildImplicants[i][j]
-                    if(j !== buildImplicants[i].length - 1) {
+                    if (j !== buildImplicants[i].length - 1) {
                         str += "*"
                     }
                 }
-                if(i !== buildImplicants.length - 1) {
+                if (i !== buildImplicants.length - 1) {
                     str += " + "
                 }
             }
         } else {
-            for(let i = 0; i < implicants.length; i++) {
-                for(let j = 0; j < implicants[i].length; j++) {
+            for (let i = 0; i < implicants.length; i++) {
+                for (let j = 0; j < implicants[i].length; j++) {
                     str += implicants[i][j]
-                    if(j !== implicants[i].length - 1) {
+                    if (j !== implicants[i].length - 1) {
                         str += "*"
                     }
                 }
-                if(i !== implicants.length - 1) {
+                if (i !== implicants.length - 1) {
                     str += " + "
                 }
             }
         }
     } else {
-        if(buildImplicants.length) {
-            for(let i = 0; i < buildImplicants.length; i++) {
+        if (buildImplicants.length) {
+            for (let i = 0; i < buildImplicants.length; i++) {
                 str += '('
-                for(let j = 0; j < buildImplicants[i].length; j++) {
+                for (let j = 0; j < buildImplicants[i].length; j++) {
                     str += buildImplicants[i][j]
-                    if(j !== buildImplicants[i].length - 1) {
+                    if (j !== buildImplicants[i].length - 1) {
                         str += "+"
                     }
                 }
                 str += ')'
-                if(i !== buildImplicants.length - 1) {
+                if (i !== buildImplicants.length - 1) {
                     str += " * "
                 }
             }
         } else {
-            for(let i = 0; i < implicants.length; i++) {
+            for (let i = 0; i < implicants.length; i++) {
                 str += '('
-                for(let j = 0; j < implicants[i].length; j++) {
+                for (let j = 0; j < implicants[i].length; j++) {
                     str += implicants[i][j]
-                    if(j !== implicants[i].length - 1) {
+                    if (j !== implicants[i].length - 1) {
                         str += "+"
                     }
                 }
                 str += ')'
-                if(i !== implicants.length - 1) {
+                if (i !== implicants.length - 1) {
                     str += " * "
                 }
             }
@@ -501,24 +525,23 @@ function isString(val) {
 
 const reductionImplicants = (implicants, substitutions) => {
     let ans = []
-    console.log(implicants, substitutions, "implicants || substitutions")
     for (let i = 0; i < implicants.length; i++) {
         let row = []
-        for(let j = 0; j < implicants.length; j++) {
-            if( i == j) continue
+        for (let j = 0; j < implicants.length; j++) {
+            if (i == j) continue
             let implicant = []
             for (let k = 0; k < implicants[j].length; k++) {
                 let keys = Object.keys(substitutions[i])
                 for (let l = 0; l < keys.length; l++) {
-                    if(k !== l) continue
-                    if(implicants[j][k][0] === '!') {
-                        if(keys.indexOf(implicants[j][k].substring(1)) !== -1) { //implicants[j][k].substring(1) === keys[k]
+                    if (k !== l) continue
+                    if (implicants[j][k][0] === '!') {
+                        if (keys.indexOf(implicants[j][k].substring(1)) !== -1) { //implicants[j][k].substring(1) === keys[k]
                             implicant.push(Number(!substitutions[i][`${implicants[j][k].substring(1)}`]))
                         } else {
                             implicant.push(implicants[j][k])
                         }
                     } else {
-                        if(keys.indexOf(implicants[j][k]) !== -1) {
+                        if (keys.indexOf(implicants[j][k]) !== -1) {
                             implicant.push(substitutions[i][`${implicants[j][k]}`])
                         } else {
                             implicant.push(implicants[j][k])
@@ -530,21 +553,21 @@ const reductionImplicants = (implicants, substitutions) => {
         }
         ans.push(row)
     }
-    for(let row of ans) {
-        for(let i = 0; i < row.length; i++) {
-            if(row[i].indexOf(0) !== -1) {
+    for (let row of ans) {
+        for (let i = 0; i < row.length; i++) {
+            if (row[i].indexOf(0) !== -1) {
                 row.splice(i, 1)
                 i = -1
             }
         }
     }
     let rowResults = []
-    for(let i = 0; i < ans.length; i++) {
+    for (let i = 0; i < ans.length; i++) {
         let obj = formKeysObject(ans[i])
-        for(let j = 0; j < ans[i].length; j++) {
-            for(let el of ans[i][j]) {
-                if(isString(el)) {
-                    if(el[0] === '!') {
+        for (let j = 0; j < ans[i].length; j++) {
+            for (let el of ans[i][j]) {
+                if (isString(el)) {
+                    if (el[0] === '!') {
                         obj[`${el.substring(1)}`] -= 1
                     } else {
                         obj[`${el}`] += 1
@@ -556,13 +579,13 @@ const reductionImplicants = (implicants, substitutions) => {
     }
     let indexes = []
     let answer = []
-    for(let i = 0; i < rowResults.length; i++) {
+    for (let i = 0; i < rowResults.length; i++) {
         let keys = Object.keys(rowResults[i])
         let sch = 0
-        for(let j = 0; j < keys.length; j++) {
+        for (let j = 0; j < keys.length; j++) {
             sch += rowResults[i][`${keys[j]}`]
         }
-        if(sch === 0) {
+        if (sch === 0) {
             answer.push(false)
             indexes.push(i)
         } else {
@@ -579,10 +602,10 @@ function getRandomInt(max) {
 
 const formKeysObject = (arr) => {
     let obj = {}
-    for(let i = 0; i < arr.length; i++) {
-        for(let j = 0; j < arr[i].length; j++) {
-            if(isString(arr[i][j])) {
-                if(arr[i][j][0] === '!') {
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[i].length; j++) {
+            if (isString(arr[i][j])) {
+                if (arr[i][j][0] === '!') {
                     obj[`${arr[i][j].substring(1)}`] = 0
                 } else {
                     obj[`${arr[i][j]}`] = 0
@@ -611,17 +634,17 @@ let calculateFormula = (formulaParameter) => {
 const buildTwoDemensionTable = (SDNF_SKNF, intersection) => {
     let table = []
     // Fill table
-    for(let i = 0; i < SDNF_SKNF.length; i++) {
+    for (let i = 0; i < SDNF_SKNF.length; i++) {
         let row = []
-        for(let j = 0; j < intersection.length; j++) {
+        for (let j = 0; j < intersection.length; j++) {
             row.push(false)
         }
         table.push(row)
     }
     // Build table
-    for(let i = 0; i < SDNF_SKNF.length; i++) {
-        for(let j = 0; j < intersection.length; j++) {
-            if(differenceArrays(SDNF_SKNF[i], intersection[j]).length === 1) {
+    for (let i = 0; i < SDNF_SKNF.length; i++) {
+        for (let j = 0; j < intersection.length; j++) {
+            if (differenceArrays(SDNF_SKNF[i], intersection[j]).length === 1) {
                 table[i][j] = true
             }
         }
@@ -631,7 +654,7 @@ const buildTwoDemensionTable = (SDNF_SKNF, intersection) => {
 
 const formObject = (SDNF_SKNF) => {
     let object = {}
-    for(let row of SDNF_SKNF) {
+    for (let row of SDNF_SKNF) {
         object[`${row}`] = []
     }
     return {...object}
@@ -639,9 +662,9 @@ const formObject = (SDNF_SKNF) => {
 
 const fillObject = (object, SDNF_SKNF, intersection) => {
     let obj = {...object}
-    for(let i = 0; i < SDNF_SKNF.length; i++) {
-        for(let j = 0; j < intersection.length; j++) {
-            if(differenceArrays(SDNF_SKNF[i], intersection[j]).length === 1) {
+    for (let i = 0; i < SDNF_SKNF.length; i++) {
+        for (let j = 0; j < intersection.length; j++) {
+            if (differenceArrays(SDNF_SKNF[i], intersection[j]).length === 1) {
                 obj[`${SDNF_SKNF[i]}`].push(intersection[j])
             }
         }
@@ -651,9 +674,9 @@ const fillObject = (object, SDNF_SKNF, intersection) => {
 
 const fillObjectMinTerms = (object, SDNF_SKNF, intersection) => {
     let obj = {...object}
-    for(let i = 0; i < SDNF_SKNF.length; i++) {
-        for(let j = 0; j < intersection.length; j++) {
-            if(differenceArrays(SDNF_SKNF[i], intersection[j]).length === 2) {
+    for (let i = 0; i < SDNF_SKNF.length; i++) {
+        for (let j = 0; j < intersection.length; j++) {
+            if (differenceArrays(SDNF_SKNF[i], intersection[j]).length === 2) {
                 obj[`${SDNF_SKNF[i]}`].push(intersection[j])
             }
         }
@@ -664,7 +687,7 @@ const fillObjectMinTerms = (object, SDNF_SKNF, intersection) => {
 const buildObject = (SDNF_SKNF, intersection, minTerm = false) => {
     const object = formObject(SDNF_SKNF)
     let filledObject
-    if(minTerm) {
+    if (minTerm) {
         filledObject = fillObjectMinTerms(object, SDNF_SKNF, intersection)
     } else {
         filledObject = fillObject(object, SDNF_SKNF, intersection)
@@ -675,9 +698,9 @@ const buildObject = (SDNF_SKNF, intersection, minTerm = false) => {
 const minimizeByRaschMethod = (SDNF, SKNF) => {
     let intersectionOfSDNF = intersectionSDNF(SDNF)
     let copyOfSDNF = [...intersectionOfSDNF]
-    if(intersectionOfSDNF.length === 1) {
-        for(let i = 0; i < SDNF.length; i++) {
-            if(differenceArrays(SDNF[i], intersectionOfSDNF[0]).length === SDNF[i].length) {
+    if (intersectionOfSDNF.length === 1) {
+        for (let i = 0; i < SDNF.length; i++) {
+            if (differenceArrays(SDNF[i], intersectionOfSDNF[0]).length === SDNF[i].length) {
                 copyOfSDNF.push(SDNF[i])
             }
         }
@@ -686,9 +709,9 @@ const minimizeByRaschMethod = (SDNF, SKNF) => {
 
     let intersectionOfSKNF = intersectionSDNF(SKNF)
     let copyOfSKNF = [...intersectionOfSKNF]
-    if(intersectionOfSKNF.length === 1) {
-        for(let i = 0; i < SKNF.length; i++) {
-            if(differenceArrays(SKNF[i], intersectionOfSKNF[0]).length === SKNF[i].length) {
+    if (intersectionOfSKNF.length === 1) {
+        for (let i = 0; i < SKNF.length; i++) {
+            if (differenceArrays(SKNF[i], intersectionOfSKNF[0]).length === SKNF[i].length) {
                 copyOfSKNF.push(SKNF[i])
             }
         }
@@ -696,16 +719,12 @@ const minimizeByRaschMethod = (SDNF, SKNF) => {
     checkImplicantsSDNF(intersectionOfSKNF, copyOfSKNF, true)
 }
 
-const minimizeByMcClasky = (SDNF, SKNF) => {
-    console.log('implicants')
-
+export const minimizeByMcClasky = (SDNF, SKNF, showSKNF = true) => {
     let intersectionOfSDNF = intersectionSDNF(SDNF)
-    console.log(intersectionOfSDNF, 'MCCLASY')
     let minTermsSDNF = minimizationMcClaskySecTerm(intersectionOfSDNF)
 
     let objectSDNF = buildObject(SDNF, intersectionOfSDNF);
-
-    if(minTermsSDNF.length !== 0) {
+    if (minTermsSDNF.length !== 0) {
         intersectionOfSDNF = minTermsSDNF
         objectSDNF = buildObject(SDNF, intersectionOfSDNF, true)
     }
@@ -715,7 +734,7 @@ const minimizeByMcClasky = (SDNF, SKNF) => {
 
     let objectSKNF = buildObject(SKNF, intersectionOfSKNF)
 
-    if(minTermsSKNF.length !== 0) {
+    if (minTermsSKNF.length !== 0) {
         intersectionOfSKNF = minTermsSKNF
         objectSKNF = buildObject(SKNF, intersectionOfSKNF, true)
     }
@@ -723,46 +742,46 @@ const minimizeByMcClasky = (SDNF, SKNF) => {
     let tableSDNF = buildTwoDemensionTable(SDNF, intersectionOfSDNF)
     let tableSKNF = buildTwoDemensionTable(SKNF, intersectionOfSKNF)
 
-    console.log(objectSDNF, 'object SDNF')
-    console.log(objectSKNF, 'object SKNF')
 
     let chosenImplicantsSDNF = buildTNFByMcClasky(objectSDNF)
-    console.log(chosenImplicantsSDNF, 'chosenImplicantsSDNF')
     let chosenImplicantsSKNF = buildTNFByMcClasky(objectSKNF)
     showRaschMethodRes(chosenImplicantsSDNF, intersectionOfSDNF)
-    showRaschMethodRes(chosenImplicantsSKNF, intersectionOfSKNF, true)
+    if(showSKNF) {
+        showRaschMethodRes(chosenImplicantsSKNF, intersectionOfSKNF, true)
+    }
 }
 
 const buildTNFByMcClasky = (object) => {
     let keys = Object.keys(object)
     let chosenImplicants = []
-    for(let i = 0; i < keys.length; i++) {
-        if(object[keys[i]].length === 1) {
+    for (let i = 0; i < keys.length; i++) {
+        if (object[keys[i]].length === 1) {
             let sch = 0
-            for(let j = 0; j < chosenImplicants.length; j++) {
-                if(compareArrays(chosenImplicants[j], object[keys[i]][0])) {
+            for (let j = 0; j < chosenImplicants.length; j++) {
+                if (compareArrays(chosenImplicants[j], object[keys[i]][0])) {
                     continue
                 } else {
                     sch++
                 }
             }
-            if(sch === chosenImplicants.length) {
+            if (sch === chosenImplicants.length) {
                 chosenImplicants.push(object[keys[i]][0])
             }
         }
     }
-    for(let i = 0; i < keys.length; i++) {
+    for (let i = 0; i < keys.length; i++) {
         let sch = 0
-        for(let j = 0; j < chosenImplicants.length; j++) {
-            if(checkArrayIncludeArray(object[keys[i]], chosenImplicants[j])) {
+        for (let j = 0; j < chosenImplicants.length; j++) {
+            if (checkArrayIncludeArray(object[keys[i]], chosenImplicants[j])) {
                 break
             } else {
                 sch++
             }
         }
-        if(sch === chosenImplicants.length && object[keys[i]].length > 0) {
+        if (sch === chosenImplicants.length && object[keys[i]].length > 0) {
             chosenImplicants.push(object[keys[i]][0])
-        } else if(sch === chosenImplicants.length && object[keys[i]].length === 0) {
+        } else if (sch === chosenImplicants.length && object[keys[i]].length === 0) {
+
             chosenImplicants.push(keys[i].split(','))
         }
     }
@@ -771,27 +790,25 @@ const buildTNFByMcClasky = (object) => {
 
 const minimizationMcClaskySecTerm = (intersection) => {
     let newTerms = []
-    for(let i = 0; i < intersection.length; i++) {
-        for(let j = i + 1; j < intersection.length; j++) {
-            if(intersection[i][0] === intersection[j][0]) {
-                if(intersection[i][1][0] === '!') {
-                    if(intersection[i][1].includes(intersection[j][1])) {
-                        console.log(intersection[i], 'inside i')
-                        console.log(intersection[j], 'inside j')
+    for (let i = 0; i < intersection.length; i++) {
+        for (let j = i + 1; j < intersection.length; j++) {
+            if (intersection[i][0] === intersection[j][0]) {
+                if (intersection[i][1][0] === '!') {
+                    if (intersection[i][1].includes(intersection[j][1])) {
                         newTerms.push(...intersectionSDNF([intersection[i], intersection[j]]))
                     }
                 } else {
-                    if(intersection[j][1].includes(intersection[i][1])) {
+                    if (intersection[j][1].includes(intersection[i][1])) {
                         newTerms.push(...intersectionSDNF([intersection[i], intersection[j]]))
                     }
                 }
-            } else if(intersection[i][1] === intersection[j][1]) {
-                if(intersection[i][0][0] === '!') {
-                    if(intersection[i][0].includes(intersection[j][0])) {
+            } else if (intersection[i][1] === intersection[j][1]) {
+                if (intersection[i][0][0] === '!') {
+                    if (intersection[i][0].includes(intersection[j][0])) {
                         newTerms.push(...intersectionSDNF([intersection[i], intersection[j]]))
                     }
                 } else {
-                    if(intersection[j][0].includes(intersection[i][0])) {
+                    if (intersection[j][0].includes(intersection[i][0])) {
                         newTerms.push(...intersectionSDNF([intersection[i], intersection[j]]))
                     }
                 }
@@ -799,8 +816,8 @@ const minimizationMcClaskySecTerm = (intersection) => {
         }
     }
     let answer = []
-    for(let i = 0; i < newTerms.length; i++) {
-        if(!checkArrayIncludeArray(answer, newTerms[i])) {
+    for (let i = 0; i < newTerms.length; i++) {
+        if (!checkArrayIncludeArray(answer, newTerms[i])) {
             answer.push(newTerms[i])
         }
     }
@@ -808,8 +825,8 @@ const minimizationMcClaskySecTerm = (intersection) => {
 }
 
 const checkArrayIncludeArray = (chosenArray, checkedArray) => {
-    for(let i = 0; i < chosenArray.length; i++) {
-        if(compareArrays(chosenArray[i], checkedArray)) {
+    for (let i = 0; i < chosenArray.length; i++) {
+        if (compareArrays(chosenArray[i], checkedArray)) {
             return true
         }
     }
@@ -902,80 +919,141 @@ function getNeighbors(kMap, row, col, size) {
 }
 
 const formKMap = (answers, KMap) => {
-    for(let i = 0; i < KMap.length; i++) {
-        for(let j = 0; j < KMap[i].length; j++) {
+    for (let i = 0; i < KMap.length; i++) {
+        for (let j = 0; j < KMap[i].length; j++) {
             KMap[i][j] = answers[KMap[i][j]]
         }
     }
     return KMap
 }
 
-function findGroups(map) {
-    let groups = [];
-    let rows = map.length;
-    let cols = map[0].length;
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            if (map[i][j] === 1) {
-                let group = { ones: [], zeros: [] };
-                group.ones.push([i, j]);
-                let stack = [[i, j]];
-                while (stack.length > 0) {
-                    let [x, y] = stack.pop();
-                    if (map[x][y] === 1) {
-                        group.ones.push([x, y]);
-                        map[x][y] = -1;
-                        if (x > 0 && map[x - 1][y] === 1) stack.push([x - 1, y]);
-                        if (y > 0 && map[x][y - 1] === 1) stack.push([x, y - 1]);
-                        if (x < rows - 1 && map[x + 1][y] === 1) stack.push([x + 1, y]);
-                        if (y < cols - 1 && map[x][y + 1] === 1) stack.push([x, y + 1]);
-                    } else if (map[x][y] === 0) {
-                        group.zeros.push([x, y]);
-                        map[x][y] = -1;
-                    }
+const karnaughMap = (answers, variables) => {
+    let KMap = [[], []]
+    KMap[1].push(0)
+    KMap[1].push(1)
+    KMap[1].push(3)
+    KMap[1].push(2)
+
+    KMap[0].push(4)
+    KMap[0].push(5)
+    KMap[0].push(7)
+    KMap[0].push(6)
+    let map = formKMap(answers, KMap)
+    let groupsSDNF = findGroupsInKMap(map)
+    let groupsSKNF = findGroupsInKMap(map, 0)
+
+    let groupsOfVariablesVertical = [1, 0]
+    let groupsOfVariablesHorisontal = [[0, 0], [0, 1], [1, 1], [1, 0]]
+    let objSDNF = compareVariablesWithGroups(groupsSDNF, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables)
+    let objSKNF = compareVariablesWithGroups(groupsSKNF, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables, true)
+
+    let implicantsSDNF = objSDNF.oldVariableAns, minAnsSDNF = objSDNF.minAns
+    let implicantsSKNF = objSKNF.oldVariableAns, minAnsSKNF = objSKNF.minAns
+
+    showRaschMethodRes(minAnsSDNF, implicantsSDNF)
+    showRaschMethodRes(minAnsSKNF, implicantsSKNF, true)
+}
+
+const findDifferencesBetweenArrays = (arr1, arr2) => {
+    let indexes = []
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] === arr2[i]) {
+            indexes.push(i)
+        }
+    }
+    return indexes
+}
+
+const compareVariablesWithGroups = (groups, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables, sknf = false) => {
+    let vertical = [variables[0]] // x1
+    let horizontal = [variables[1], variables[2]] // x2 x3
+    let variableAns = []
+
+    for (let group of groups) {
+        if (group.row.length === 1) {
+            let variable = !groupsOfVariablesVertical[group.row[0]] ? '!x1' : 'x1'
+            let indexOfDiff = findDifferencesBetweenArrays(groupsOfVariablesHorisontal[group.group[0]], groupsOfVariablesHorisontal[group.group[1]])
+            if (indexOfDiff.length === 0) {
+                variableAns.push([variable])
+                continue
+            } else {
+                let vars = []
+                for (let i = 0; i < indexOfDiff.length; i++) {
+                    vars.push(!Number(groupsOfVariablesHorisontal[group.group[0]][indexOfDiff[i]]) ? `!${horizontal[indexOfDiff[i]]}` : `${horizontal[indexOfDiff[i]]}`)
                 }
-                groups.push(group);
-            } else if (map[i][j] === 0) {
-                let group = { ones: [], zeros: [] };
-                group.zeros.push([i, j]);
-                let stack = [[i, j]];
-                while (stack.length > 0) {
-                    let [x, y] = stack.pop();
-                    if (map[x][y] === 0) {
-                        group.zeros.push([x, y]);
-                        map[x][y] = -1;
-                        if (x > 0 && map[x - 1][y] === 0) stack.push([x - 1, y]);
-                        if (y > 0 && map[x][y - 1] === 0) stack.push([x, y - 1]);
-                        if (x < rows - 1 && map[x + 1][y] === 0) stack.push([x + 1, y]);
-                        if (y < cols - 1 && map[x][y + 1] === 0) stack.push([x, y + 1]);
-                    } else if (map[x][y] === 1) {
-                        group.ones.push([x, y]);
-                        map[x][y] = -1;
-                    }
+                variableAns.push([variable, ...vars])
+            }
+        } else if (group.group.length === 1) {
+            let firsVar = !Number(groupsOfVariablesHorisontal[group.group[0]][0]) ? `!${horizontal[0]}` : `${horizontal[0]}`
+            let secondVar = !Number(groupsOfVariablesHorisontal[group.group[0]][1]) ? `!${horizontal[1]}` : `${horizontal[1]}`
+
+            variableAns.push([firsVar, secondVar])
+        } else if (group.group.length > 1 && group.row.length > 1) {
+            let indexOfDiff = findDifferencesBetweenArrays(groupsOfVariablesHorisontal[group.group[0]], groupsOfVariablesHorisontal[group.group[1]])
+            if (indexOfDiff.length !== 0) {
+                let vars = []
+                for (let i = 0; i < indexOfDiff.length; i++) {
+                    vars.push(!Number(groupsOfVariablesHorisontal[group.group[0]][indexOfDiff[i]]) ? `!${horizontal[indexOfDiff[i]]}` : `${horizontal[indexOfDiff[i]]}`)
                 }
-                groups.push(group);
+                variableAns.push([...vars])
             }
         }
     }
-    return groups;
+    let ansVariables = new Set()
+    sortArrByLengthOfArrs(variableAns)
+    let oldVariableAns = [...variableAns]
+    if(sknf) {
+        for(let i = 0; i < oldVariableAns.length; i++) {
+            for(let j = 0; j < oldVariableAns[i].length; j++) {
+                if(oldVariableAns[i][j][0] === '!') {
+                    oldVariableAns[i][j] = oldVariableAns[i][j].substring(1)
+                } else {
+                    oldVariableAns[i][j] = `!${oldVariableAns[i][j]}`
+                }
+            }
+        }
+        // for(let i = 0; i < minAns.length; i++) {
+        //     for(let j = 0; j < minAns[i].length; j++) {
+        //         if(minAns[i][j][0] === '!') {
+        //             minAns[i][j] = minAns[i][j].substring(1)
+        //         } else {
+        //             minAns[i][j] = `!${minAns[i][j]}`
+        //         }
+        //     }
+        // }
+    }
+    let k = 0
+    let minAns = []
+    while (ansVariables.size !== 3 && k < variableAns.length) {
+        let startSize = ansVariables.size
+        for (let j = 0; j < variableAns[k].length; j++) {
+            if (variableAns[k][j][0] === '!') {
+                ansVariables.add(variableAns[k][j].substring(1))
+            } else {
+                ansVariables.add(variableAns[k][j])
+            }
+        }
+        if (ansVariables.size !== startSize) {
+            minAns.push(variableAns[k])
+        }
+        k++
+    }
+
+
+    return {oldVariableAns, minAns}
+
 }
 
-const karnaughMap = (answers) => {
-    let KMap = [[], []]
-    KMap[0].push(0)
-    KMap[0].push(1)
-    KMap[0].push(3)
-    KMap[0].push(2)
-    KMap[1].push(4)
-    KMap[1].push(5)
-    KMap[1].push(7)
-    KMap[1].push(6)
-    console.log(KMap)
-    let map = formKMap(answers, KMap)
-    console.log(map)
-    console.log(selectPowerOfTwoGroups(map))
-    let groups = findGroups(map)
-
+const sortArrByLengthOfArrs = (ansVariables) => {
+    for (let i = 0; i < ansVariables.length; i++) {
+        for (let j = 0; j < ansVariables.length; j++) {
+            if (ansVariables[i].length < ansVariables[j].length) {
+                let tmp = ansVariables[i]
+                ansVariables[i] = ansVariables[j]
+                ansVariables[j] = tmp
+            }
+        }
+    }
 }
 
 function selectPowerOfTwoGroups(map) {
@@ -991,10 +1069,66 @@ function selectPowerOfTwoGroups(map) {
 }
 
 function isPowerOfTwo(n) {
+    if (n === 1) {
+        return false
+    }
     return (n & (n - 1)) === 0;
 }
 
-const
+const findGroupsInKMap = (kMap, compare = 1) => {
+    let groups = []
+    for (let i = 0; i < kMap.length; i++) {
+        for (let j = 0; j < kMap[i].length; j++) {
+            if (kMap[i][j] === compare) {
+                let k = j + 1
+                while (kMap[i][k] === compare) {
+                    if (isPowerOfTwo(k - j - 1)) {
+                        groups.push({row: [i], group: [j, k], side: false})
+                    }
+                    k++
+                }
+            }
+            if (kMap[i][j] === compare) {
+                let k = i + 1
+                if (k > 1) {
+                    continue
+                }
+                while (kMap[k][j] === compare) {
+                    if (isPowerOfTwo(k + 1)) {
+                        groups.push({row: [i, k], group: [j], side: false})
+                    }
+                    k++
+                    if (k > 1) {
+                        break
+                    }
+                }
+            }
+        }
+    }
+    // find squares
+    for (let j = 0; j < kMap[0].length; j++) {
+        if (kMap[0][j] === compare && kMap[1][j] === compare) {
+            let k = j + 1
+            while (kMap[0][k] === compare && kMap[1][k] === compare) {
+                if (isPowerOfTwo(k - j - 1)) {
+                    groups.push({row: [0, 1], group: [j, k], side: false})
+                }
+                k++
+            }
+        }
+    }
+    // find side squares
+    if (kMap[0][0] === compare && kMap[0][kMap[0].length - 1] === compare) {
+        groups.push({row: [0], group: [0, kMap[0].length - 1], side: true})
+    }
+    if (kMap[1][0] === compare && kMap[1][kMap[0].length - 1] === compare) {
+        groups.push({row: [1], group: [0, kMap[1].length - 1], side: true})
+    }
+    if (kMap[0][0] === compare && kMap[1][0] === compare && kMap[0][kMap[0].length - 1] === compare && kMap[1][kMap[0].length - 1] === compare) {
+        groups.push({row: [0, 1], group: [0, kMap[1].length - 1], side: true})
+    }
+    return groups
+}
 
 const main = () => {
     let {table, answers, variables} = calculateFormula('!x1*!x2*x3+!x1*x2*!x3+!x1*x2*x3+x1*x2*!x3'); //((x1+(x2*x3))->(!x1~(!x2))) ((x1+(x2*x3))~((x1+x2)*x3)) !x1*!x2*x3+!x1*x2*!x3+!x1*x2*x3+x1*x2*!x3
@@ -1007,12 +1141,17 @@ const main = () => {
     console.log('----------------------------------------------')
     buildInt(answers)
 
-    console.log(SDNF, 'SDNF')
-    console.log(SKNF, 'SKNF')
-
+    console.log("Расчётный метод")
     minimizeByRaschMethod(SDNF, SKNF)
-    minimizeByMcClasky(SDNF, SKNF)
-    karnaughMap(answers)
+    //minimizeByMcClasky(SDNF, SKNF)
+    console.log("Квайна маккласки")
+    let minOBJ = new MinimizationMcClusky()
+    console.log(minOBJ.formStringAns(SDNF))
+    console.log(minOBJ.formStringAns(SKNF))
+    console.log("Карты карно")
+    karnaughMap(answers, variables)
+
+
 }
 
 main()
