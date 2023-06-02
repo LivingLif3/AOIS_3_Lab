@@ -356,7 +356,7 @@ const symmetricalDofference = (arr1, arr2) => {
     return [...difference]
 }
 
-const checkImplicantsSDNF = (SDNF, copyOfSDNF, sknf = false) => {
+const checkImplicantsSDNF = (SDNF, copyOfSDNF, TFunc, sknf = false) => {
     let substitutions = []
 
     let reducedImplicants = minimizationMcClaskySecTerm(SDNF)
@@ -408,7 +408,7 @@ const checkImplicantsSDNF = (SDNF, copyOfSDNF, sknf = false) => {
     if (SDNF.length === 1 && copyOfSDNF.length > SDNF.length) {
         buildImplicants.push(copyOfSDNF[1])
     }
-    showRaschMethodRes(buildImplicants, SDNF, sknf)
+    showCarnoMethodRes(TFunc, sknf)
 }
 
 const compareArrays = (arr1, arr2) => {
@@ -695,7 +695,7 @@ const buildObject = (SDNF_SKNF, intersection, minTerm = false) => {
     return {...filledObject}
 }
 
-const minimizeByRaschMethod = (SDNF, SKNF) => {
+const minimizeByRaschMethod = (SDNF, SKNF, TDNF, TKNF) => {
     let intersectionOfSDNF = intersectionSDNF(SDNF)
     let copyOfSDNF = [...intersectionOfSDNF]
     if (intersectionOfSDNF.length === 1) {
@@ -705,7 +705,7 @@ const minimizeByRaschMethod = (SDNF, SKNF) => {
             }
         }
     }
-    checkImplicantsSDNF(intersectionOfSDNF, copyOfSDNF)
+    checkImplicantsSDNF(intersectionOfSDNF, copyOfSDNF, TDNF)
 
     let intersectionOfSKNF = intersectionSDNF(SKNF)
     let copyOfSKNF = [...intersectionOfSKNF]
@@ -716,7 +716,7 @@ const minimizeByRaschMethod = (SDNF, SKNF) => {
             }
         }
     }
-    checkImplicantsSDNF(intersectionOfSKNF, copyOfSKNF, true)
+    checkImplicantsSDNF(intersectionOfSKNF, copyOfSKNF, TKNF, true)
 }
 
 export const minimizeByMcClasky = (SDNF, SKNF, showSKNF = true) => {
@@ -927,7 +927,7 @@ const formKMap = (answers, KMap) => {
     return KMap
 }
 
-const karnaughMap = (answers, variables) => {
+const karnaughMap = (answers, variables, TDNF, TKNF) => {
     let KMap = [[], []]
     KMap[1].push(0)
     KMap[1].push(1)
@@ -944,15 +944,61 @@ const karnaughMap = (answers, variables) => {
 
     let groupsOfVariablesVertical = [1, 0]
     let groupsOfVariablesHorisontal = [[0, 0], [0, 1], [1, 1], [1, 0]]
-    let objSDNF = compareVariablesWithGroups(groupsSDNF, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables)
-    let objSKNF = compareVariablesWithGroups(groupsSKNF, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables, true)
+    let objSDNF = compareVariablesWithGroups(groupsSDNF, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables, TDNF)
+    let objSKNF = compareVariablesWithGroups(groupsSKNF, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables, TKNF, true)
 
-    let implicantsSDNF = objSDNF.oldVariableAns, minAnsSDNF = objSDNF.minAns
-    let implicantsSKNF = objSKNF.oldVariableAns, minAnsSKNF = objSKNF.minAns
+    let minAnsSDNF = objSDNF.minAns
+    let minAnsSKNF = objSKNF.minAns
 
-    showRaschMethodRes(minAnsSDNF, implicantsSDNF)
-    showRaschMethodRes(minAnsSKNF, implicantsSKNF, true)
+    showCarnoMethodRes(minAnsSDNF)
+    showCarnoMethodRes(minAnsSKNF, true)
+
+    // showRaschMethodRes(minAnsSDNF, implicantsSDNF)
+    // showRaschMethodRes(minAnsSKNF, implicantsSKNF, true)
 }
+
+let showCarnoMethodRes = (terms, sknf = false) => {
+    let term = []
+    for(let i = 0; i < terms.length - 1; i++) {
+        term = [...terms[i + 1]]
+        terms[i + 1] = terms[i]
+        terms[i] = term
+    }
+    let strAns = ""
+    if(!sknf) {
+        for (let i = 0; i < terms.length; i++) {
+            let str = "("
+            let tmpStr = ""
+            for (let j = 0; j < terms[i].length; j++) {
+                tmpStr = terms[i][j].filter(el => el !== '-')
+                tmpStr = tmpStr.join('*')
+            }
+            str += tmpStr
+            str += ")"
+            strAns += str
+            if (i !== terms.length - 1) {
+                strAns += " + "
+            }
+        }
+    } else {
+        for (let i = 0; i < terms.length; i++) {
+            let str = "("
+            let tmpStr = ""
+            for (let j = 0; j < terms[i].length; j++) {
+                tmpStr = terms[i][j].filter(el => el !== '-')
+                tmpStr = tmpStr.join('+')
+            }
+            str += tmpStr
+            str += ")"
+            strAns += str
+            if (i !== terms.length - 1) {
+                strAns += " * "
+            }
+        }
+    }
+    console.log(strAns)
+}
+
 
 const findDifferencesBetweenArrays = (arr1, arr2) => {
     let indexes = []
@@ -964,7 +1010,7 @@ const findDifferencesBetweenArrays = (arr1, arr2) => {
     return indexes
 }
 
-const compareVariablesWithGroups = (groups, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables, sknf = false) => {
+const compareVariablesWithGroups = (groups, groupsOfVariablesVertical, groupsOfVariablesHorisontal, variables, TFunc, sknf = false) => {
     let vertical = [variables[0]] // x1
     let horizontal = [variables[1], variables[2]] // x2 x3
     let variableAns = []
@@ -1040,7 +1086,7 @@ const compareVariablesWithGroups = (groups, groupsOfVariablesVertical, groupsOfV
     }
 
 
-    return {oldVariableAns, minAns}
+    return {oldVariableAns, minAns: TFunc}
 
 }
 
@@ -1131,27 +1177,26 @@ const findGroupsInKMap = (kMap, compare = 1) => {
 }
 
 const main = () => {
-    let {table, answers, variables} = calculateFormula('!x1*!x2*x3+!x1*x2*!x3+!x1*x2*x3+x1*x2*!x3'); //((x1+(x2*x3))->(!x1~(!x2))) ((x1+(x2*x3))~((x1+x2)*x3)) !x1*!x2*x3+!x1*x2*!x3+!x1*x2*x3+x1*x2*!x3
+    let {table, answers, variables} = calculateFormula('(x1+x2)*x3'); //((x1+(x2*x3))->(!x1~(!x2))) ((x1+(x2*x3))~((x1+x2)*x3)) !x1*!x2*x3+!x1*x2*!x3+!x1*x2*x3+x1*x2*!x3
     showTable(table, answers, variables)
+    let minOBJ = new MinimizationMcClusky()
+
     let SDNF = buildSDNF(table, answers, variables)
     console.log('----------------------------------------------')
     let SKNF = buildSKNF(table, answers, variables)
     console.log('----------------------------------------------')
+    let TDNF = minOBJ.getTerms(SDNF), TKNF = minOBJ.getTerms(SKNF)
     buildNumForm(table, answers)
     console.log('----------------------------------------------')
     buildInt(answers)
 
     console.log("Расчётный метод")
-    minimizeByRaschMethod(SDNF, SKNF)
-    //minimizeByMcClasky(SDNF, SKNF)
+    minimizeByRaschMethod(SDNF, SKNF, TDNF, TKNF)
     console.log("Квайна маккласки")
-    let minOBJ = new MinimizationMcClusky()
     console.log(minOBJ.formStringAns(SDNF))
-    console.log(minOBJ.formStringAns(SKNF))
+    console.log(minOBJ.formStringAnsSKNF(SKNF))
     console.log("Карты карно")
-    karnaughMap(answers, variables)
-
-
+    karnaughMap(answers, variables, TDNF, TKNF)
 }
 
 main()
